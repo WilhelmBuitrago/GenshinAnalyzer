@@ -17,7 +17,7 @@ app = FastAPI(title="Genshin Artifact Analyzer API")
 origins = [
     "http://localhost:3000",  # tu frontend
     "http://127.0.0.1:3000",
-    "https://genshinanalyzer-frontend.onrender.com",
+    "https://genshinanalyzer.onrender.com",
 ]
 
 app.add_middleware(
