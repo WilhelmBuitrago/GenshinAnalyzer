@@ -28,6 +28,8 @@ type BackendArtifactPayload = {
   substats: Record<string, number>;
 };
 
+export const BACKEND_BASE_URL = process.env.BACKEND_API ?? "http://localhost:8000";
+
 const toBackendArtifact = (artifact: ArtifactInput): BackendArtifactPayload => {
   const substats = artifact.substats.reduce<Record<string, number>>((acc, entry) => {
     acc[entry.stat] = entry.value;
@@ -50,7 +52,7 @@ const toThresholdDict = (thresholds: ThresholdPayload[]): Record<string, number>
 };
 
 const api = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: BACKEND_BASE_URL,
   timeout: 20_000
 });
 

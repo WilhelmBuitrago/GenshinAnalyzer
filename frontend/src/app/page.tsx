@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { ArtifactInput, MaxSubstats, MaxUpgrades, RollValues, StatKey } from "@/types/artifact";
 import {
+  BACKEND_BASE_URL,
   runDistributionEvents,
   runProbabilityThreshold,
   runProbabilityUpgradeVector,
@@ -118,6 +119,7 @@ const UPGRADE_LEVELS: Record<Rarity, number[]> = {
 };
 
 export default function Page() {
+  const [bootStatus, setBootStatus] = useState<"pending" | "ready" | "failed">("pending");
   const [artifact, setArtifact] = useState<ArtifactInput>({
     rarity: 5,
     level: 0,
@@ -142,6 +144,38 @@ export default function Page() {
   const [result, setResult] = useState<ModeResult | null>(null);
 
   useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      controller.abort();
+      if (active) setBootStatus("failed");
+    }, 40_000);
+
+    const pingBackend = async () => {
+      try {
+        const response = await fetch(`${BACKEND_BASE_URL.replace(/\/+$/, "")}/`, {
+          signal: controller.signal
+        });
+        if (!response.ok) throw new Error("Backend unavailable");
+        if (active) setBootStatus("ready");
+      } catch (err) {
+        if (active) setBootStatus("failed");
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
+    };
+
+    pingBackend();
+
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (bootStatus !== "ready") return;
     const preload = async () => {
       try {
         const [utils, rolls, maxes, maxUps] = await Promise.all([
@@ -162,7 +196,7 @@ export default function Page() {
       }
     };
     preload();
-  }, []);
+  }, [bootStatus]);
 
   const canSubmit = useMemo(() => {
     if (loading) return false;
@@ -347,6 +381,10 @@ export default function Page() {
       setLoading(false);
     }
   };
+
+  if (bootStatus !== "ready") {
+    return <BootScreen status={bootStatus} />;
+  }
 
   return (
     <main className="min-h-screen flex items-center justify-center py-10 px-4">
@@ -1023,5 +1061,45 @@ function TooltipIcon({ text }: { text: string }) {
         {text}
       </span>
     </span>
+  );
+}
+
+function BootScreen({ status }: { status: "pending" | "failed" }) {
+  const baseUrl = BACKEND_BASE_URL.replace(/\/+$/, "");
+
+  return (
+    <main className="min-h-screen flex items-center justify-center py-10 px-4">
+      <div className="w-full max-w-xl">
+        <div className="card card-hover p-6 md:p-8 text-center">
+          <p className="text-sm uppercase tracking-[0.35em] text-muted">Genshin Analyzer</p>
+          <h1 className="text-3xl md:text-4xl font-semibold text-text mt-3">Conectando con el backend</h1>
+          {status === "pending" ? (
+            <p className="text-sm text-muted mt-3">
+              Estamos despertando el servicio en {baseUrl}. Esto puede tomar hasta 40 segundos.
+            </p>
+          ) : (
+            <p className="text-sm text-rose-400 mt-3">
+              Hubo un problema al conectar con el backend :( Intenta recargar o revisa el servicio.
+            </p>
+          )}
+
+          <div className="mt-6">
+            {status === "pending" ? (
+              <div className="mx-auto h-2 w-32 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full w-1/2 bg-primary animate-pulse" />
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => window.location.reload()}
+              >
+                Reintentar
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
