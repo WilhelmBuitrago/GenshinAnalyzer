@@ -4,9 +4,6 @@ const nextConfig = {
   experimental: {
     appDir: true
   },
-  env: {
-    BACKEND_API: process.env.BACKEND_API
-  },
   output: "standalone"
 };
 

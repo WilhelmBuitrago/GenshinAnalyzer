@@ -28,7 +28,7 @@ type BackendArtifactPayload = {
   substats: Record<string, number>;
 };
 
-export const BACKEND_BASE_URL = process.env.BACKEND_API ?? "http://localhost:8000";
+export const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API ?? "http://localhost:8000";
 
 const toBackendArtifact = (artifact: ArtifactInput): BackendArtifactPayload => {
   const substats = artifact.substats.reduce<Record<string, number>>((acc, entry) => {
