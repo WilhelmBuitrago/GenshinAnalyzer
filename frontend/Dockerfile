@@ -29,4 +29,4 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "echo PORT=$PORT && echo HOSTNAME=$HOSTNAME && ls -la && node server.js"]
+CMD ["sh", "-c", "node server.js -p $PORT -H 0.0.0.0"]
