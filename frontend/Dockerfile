@@ -3,6 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+ARG NEXT_PUBLIC_BACKEND_API
+ENV NEXT_PUBLIC_BACKEND_API=$NEXT_PUBLIC_BACKEND_API
+
 COPY package.json package-lock.json* ./
 RUN npm ci
 
