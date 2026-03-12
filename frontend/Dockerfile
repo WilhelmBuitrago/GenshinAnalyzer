@@ -20,10 +20,11 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=10000
 
 # Copiamos solo lo necesario del build standalone
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-#COPY --from=builder /app/public ./public
+COPY --from=builder /app/public ./public
 
-CMD ["sh", "-c", "node server.js -p $PORT"]
+CMD ["node", "server.js"]

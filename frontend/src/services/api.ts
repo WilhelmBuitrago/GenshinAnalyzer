@@ -29,7 +29,11 @@ type BackendArtifactPayload = {
 };
 
 export const BACKEND_BASE_URL =
-  process.env.NEXT_PUBLIC_BACKEND_API!;
+  process.env.NEXT_PUBLIC_BACKEND_API ?? "";
+
+if (!BACKEND_BASE_URL) {
+  throw new Error("NEXT_PUBLIC_BACKEND_API is not defined");
+}
 
 const toBackendArtifact = (artifact: ArtifactInput): BackendArtifactPayload => {
   const substats = artifact.substats.reduce<Record<string, number>>((acc, entry) => {
@@ -52,7 +56,7 @@ const toThresholdDict = (thresholds: ThresholdPayload[]): Record<string, number>
   }, {});
 };
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: BACKEND_BASE_URL,
   timeout: 20_000
 });
@@ -142,4 +146,3 @@ export async function fetchMaxUpdateValues(): Promise<MaxUpgrades> {
   return data;
 }
 
-export { api };
