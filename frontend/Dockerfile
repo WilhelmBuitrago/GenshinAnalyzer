@@ -27,4 +27,6 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-CMD ["sh", "-c", "PORT=$PORT node server.js"]
+EXPOSE 10000
+
+CMD ["sh", "-c", "node server.js -p $PORT"]
